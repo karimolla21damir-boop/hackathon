@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>School Management — Управленческие компетенции директора</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#0F172A',
+            secondary: '#1E293B',
+            accent: '#38BDF8',
+            soft: '#F8FAFC',
+            success: '#22C55E',
+            warning: '#F59E0B',
+            danger: '#EF4444'
+          },
+          boxShadow: {
+            card: '0 10px 30px rgba(15, 23, 42, 0.08)',
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Inter, system-ui, sans-serif; }
+    .sidebar-link.active { background:#38BDF8; color:#0F172A; }
+    .fade-in { animation: fade .25s ease; }
+    @keyframes fade { from { opacity:0; transform:translateY(8px);} to { opacity:1; transform:translateY(0);} }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+  <div id="app"></div>
+
+  <script>
+    const STORAGE_KEY = 'school_user';
+
+    const students = [
+      { id: 1, name: 'Алихан Нұрланұлы', className: '10A', average: 4.7, attendance: 96 },
+      { id: 2, name: 'Аружан Сейтова', className: '10A', average: 4.9, attendance: 98 },
+      { id: 3, name: 'Дамир Ермеков', className: '9B', average: 4.3, attendance: 91 },
+      { id: 4, name: 'Мадина Жаксылык', className: '11A', average: 4.8, attendance: 95 },
+      { id: 5, name: 'Ерасыл Төлеген', className: '9B', average: 4.1, attendance: 89 },
+      { id: 6, name: 'Аяулым Кайрат', className: '11A', average: 4.6, attendance: 94 },
+      { id: 7, name: 'Диас Бекен', className: '8C', average: 3.9, attendance: 88 },
+      { id: 8, name: 'Томирис Асан', className: '8C', average: 4.4, attendance: 93 },
+      { id: 9, name: 'Нұрболат Сапар', className: '10A', average: 4.2, attendance: 90 },
+      { id: 10, name: 'Инкар Мусина', className: '11A', average: 5.0, attendance: 99 }
+    ];
+
+    const monthlyPerformance = [
+      { month: 'Янв', performance: 4.1, attendance: 91 },
+      { month: 'Фев', performance: 4.2, attendance: 92 },
+      { month: 'Мар', performance: 4.3, attendance: 93 },
+      { month: 'Апр', performance: 4.4, attendance: 94 },
+      { month: 'Май', performance: 4.5, attendance: 95 },
+      { month: 'Июн', performance: 4.6, attendance: 96 }
+    ];
+
+    const classComparison = [
+      { className: '8C', avgScore: 4.15, attendance: 90.5 },
+      { className: '9B', avgScore: 4.2, attendance: 90 },
+      { className: '10A', avgScore: 4.6, attendance: 94.7 },
+      { className: '11A', avgScore: 4.8, attendance: 96 }
+    ];
+
+    const planningItems = [
+      { id: 1, title: 'Повышение среднего балла школы', owner: 'Зам. директора по УР', deadline: '2025-05-20', progress: 72, status: 'В процессе' },
+      { id: 2, title: 'Мониторинг посещаемости 9-11 классов', owner: 'Соц. педагог', deadline: '2025-05-15', progress: 88, status: 'Почти завершено' },
+      { id: 3, title: 'Подготовка к итоговой аттестации', owner: 'Руководители МО', deadline: '2025-06-01', progress: 60, status: 'В процессе' },
+      { id: 4, title: 'Анализ качества знаний за четверть', owner: 'Директор', deadline: '2025-05-10', progress: 95, status: 'Завершение' }
+    ];
+
+    const studentProgress = [
+      { month: 'Янв', score: 4.2, attendance: 94 },
+      { month: 'Фев', score: 4.4, attendance: 95 },
+      { month: 'Мар', score: 4.5, attendance: 97 },
+      { month: 'Апр', score: 4.6, attendance: 96 },
+      { month: 'Май', score: 4.7, attendance: 98 }
+    ];
+
+    const studentTasks = [
+      { id: 1, title: 'Подготовить проект по биологии', date: '12 мая', type: 'Дедлайн' },
+      { id: 2, title: 'Школьная олимпиада по математике', date: '15 мая', type: 'Мероприятие' },
+      { id: 3, title: 'Сдать эссе по истории', date: '18 мая', type: 'Дедлайн' },
+      { id: 4, title: 'Родительское собрание', date: '22 мая', type: 'Мероприятие' }
+    ];
+
+    let currentPage = 'login';
+    let lineChartInstance = null;
+    let barChartInstance = null;
+    let studentChartInstance = null;
+
+    function getStoredUser() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }
+
+    function setStoredUser(user) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    }
+
+    function logoutUser() {
+      localStorage.removeItem(STORAGE_KEY);
+      currentPage = 'login';
+      renderApp();
+    }
+
+    function loginUser(email) {
+      let user = null;
+      if (email === 'admin@school.kz') {
+        user = {
+          email,
+          role: 'admin',
+          name: 'Айгүл Серікқызы',
+          position: 'Директор школы'
+        };
+      }
+      if (email === 'student@school.kz') {
+        user = {
+          email,
+          role: 'user',
+          name: 'Алихан Нұрланұлы',
+          className: '10A'
+        };
+      }
+      if (user) setStoredUser(user);
+      return user;
+    }
+
+    function statCard(title, value, subtitle, color) {
+      return `
+        <div class="rounded-2xl bg-white p-5 shadow-card">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-sm text-slate-500">${title}</p>
+              <h3 class="mt-2 text-3xl font-bold text-primary">${value}</h3>
+              <p class="mt-2 text-sm text-slate-400">${subtitle || ''}</p>
+            </div>
+            <div class="h-12 w-12 rounded-2xl ${color}"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function getLayout(content) {
+      const user = getStoredUser();
+      const adminLinks = [
+        ['admin-dashboard', 'Дашборд'],
+        ['admin-students', 'Список учеников'],
+        ['admin-planning', 'Планирование'],
+        ['admin-monitoring', 'Мониторинг'],
+        ['admin-analysis', 'Анализ']
+      ];
+      const userLinks = [['student-dashboard', 'Мой кабинет']];
+      const links = user.role === 'admin' ? adminLinks : userLinks;
+
+      return `
+        <div class="min-h-screen bg-slate-50 md:flex">
+          <aside class="w-full bg-primary text-white md:min-h-screen md:w-72">
+            <div class="border-b border-slate-700 px-6 py-6">
+              <h2 class="text-xl font-bold">Edu-Tech Panel</h2>
+              <p class="mt-1 text-sm text-slate-300">${user.role === 'admin' ? 'Панель директора' : 'Панель ученика'}</p>
+            </div>
+            <nav class="flex flex-col gap-2 p-4">
+              ${links.map(([key, label]) => `
+                <button onclick="navigateTo('${key}')" class="sidebar-link text-left rounded-xl px-4 py-3 text-sm font-medium transition ${currentPage === key ? 'active' : 'text-slate-200 hover:bg-slate-800'}">
+                  ${label}
+                </button>
+              `).join('')}
+            </nav>
+          </aside>
+
+          <div class="flex-1">
+            <header class="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/90 px-4 py-4 backdrop-blur md:px-6">
+              <div>
+                <h1 class="text-lg font-bold text-primary">School Management</h1>
+                <p class="text-sm text-slate-500">Планирование • Мониторинг • Анализ</p>
+              </div>
+              <div class="flex items-center gap-4">
+                <div class="hidden text-right md:block">
+                  <p class="text-sm font-semibold text-slate-700">${user.name}</p>
+                  <p class="text-xs text-slate-500">${user.role === 'admin' ? 'Директор' : 'Ученик ' + user.className}</p>
+                </div>
+                <button onclick="logoutUser()" class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800">
+                  Выйти
+                </button>
+              </div>
+            </header>
+
+            <main class="p-4 md:p-6 fade-in">
+              ${content}
+            </main>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLogin() {
+      return `
+        <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary via-slate-900 to-sky-900 px-4">
+          <div class="grid w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl lg:grid-cols-2">
+            <div class="hidden bg-primary p-10 text-white lg:block">
+              <h1 class="text-3xl font-bold">School Management</h1>
+              <p class="mt-6 text-slate-300">
+                Цифровая панель управления школой для директора и учеников.
+              </p>
+              <div class="mt-10 space-y-4">
+                <div class="rounded-2xl bg-slate-800 p-4">
+                  <p class="font-semibold">Директор</p>
+                  <p class="text-sm text-slate-300">admin@school.kz</p>
+                </div>
+                <div class="rounded-2xl bg-slate-800 p-4">
+                  <p class="font-semibold">Ученик</p>
+                  <p class="text-sm text-slate-300">student@school.kz</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-8 md:p-12">
+              <div class="mb-8">
+                <h2 class="text-2xl font-bold text-primary">Вход в систему</h2>
+                <p class="text-sm text-slate-500">Авторизация по ролям</p>
+              </div>
+
+              <form onsubmit="handleLogin(event)" class="space-y-5">
+                <div>
+                  <label class="mb-2 block text-sm font-medium text-slate-700">Email</label>
+                  <input id="email" type="email" class="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-400" placeholder="Введите email" />
+                </div>
+
+                <div>
+                  <label class="mb-2 block text-sm font-medium text-slate-700">Пароль</label>
+                  <input type="password" class="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-sky-400" placeholder="Введите пароль" />
+                </div>
+
+                <div id="login-error" class="hidden rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600"></div>
+
+                <button type="submit" class="w-full rounded-2xl bg-primary px-4 py-3 font-semibold text-white transition hover:bg-slate-800">
+                  Войти
+                </button>
+              </form>
+
+              <div class="mt-6 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
+                Для демо используйте:
+                <div class="mt-2 space-y-1">
+                  <p><b>admin@school.kz</b> — директор</p>
+                  <p><b>student@school.kz</b> — ученик</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAdminDashboard() {
+      const totalStudents = students.length;
+      const avgScore = (students.reduce((sum, s) => sum + s.average, 0) / students.length).toFixed(2);
+      const avgAttendance = Math.round(students.reduce((sum, s) => sum + s.attendance, 0) / students.length);
+      const planCompletion = Math.round(planningItems.reduce((sum, p) => sum + p.progress, 0) / planningItems.length);
+
+      return getLayout(`
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold text-primary">Дашборд директора</h2>
+          <p class="text-slate-500">Обзор ключевых управленческих показателей школы</p>
+        </div>
+
+        <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+          ${statCard('Общее кол-во учеников', totalStudents, 'Все активные учащиеся', 'bg-sky-500')}
+          ${statCard('Средний балл школы', avgScore, 'По всем классам', 'bg-emerald-500')}
+          ${statCard('Процент посещаемости', avgAttendance + '%', 'Средний по школе', 'bg-amber-500')}
+          ${statCard('Выполнение плана', planCompletion + '%', 'По управленческим задачам', 'bg-primary')}
+        </div>
+
+        <div class="mt-6 rounded-2xl bg-white p-6 shadow-card">
+          <h3 class="text-lg font-bold text-primary">Управленческий фокус</h3>
+          <p class="mt-3 leading-7 text-slate-600">
+            Данный модуль демонстрирует компетенции директора в области планирования,
+            мониторинга и анализа образовательных результатов. На основе показателей
+            можно быстро принимать управленческие решения и отслеживать динамику качества обучения.
+          </p>
+        </div>
+      `);
+    }
+
+    function renderStudentManagement() {
+      const classes = ['Все', ...new Set(students.map(s => s.className))];
+
+      return getLayout(`
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold text-primary">Список учеников</h2>
+          <p class="text-slate-500">Поиск, фильтрация и просмотр академических показателей</p>
+        </div>
+
+        <div class="rounded-2xl bg-white p-5 shadow-card">
+          <div class="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <h2 class="text-xl font-bold text-primary">Управление учениками</h2>
+
+            <div class="flex flex-col gap-3 md:flex-row">
+              <input id="student-search" type="text" placeholder="Поиск по имени..." class="rounded-xl border border-slate-200 px-4 py-2 outline-none" oninput="renderStudentRows()" />
+              <select id="class-filter" class="rounded-xl border border-slate-200 px-4 py-2 outline-none" onchange="renderStudentRows()">
+                ${classes.map(c => `<option value="${c}">${c}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full overflow-hidden rounded-xl">
+              <thead class="bg-slate-100 text-left text-sm text-slate-600">
+                <tr>
+                  <th class="px-4 py-3">Имя</th>
+                  <th class="px-4 py-3">Класс</th>
+                  <th class="px-4 py-3">Средний балл</th>
+                  <th class="px-4 py-3">Посещаемость</th>
+                </tr>
+              </thead>
+              <tbody id="students-body"></tbody>
+            </table>
+          </div>
+        </div>
+      `);
+    }
+
+    function renderPlanning() {
+      return getLayout(`
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold text-primary">Планирование</h2>
+          <p class="text-slate-500">Приоритетные задачи и выполнение управленческого плана</p>
+        </div>
+
+        <div class="grid gap-4">
+          ${planningItems.map(item => `
+            <div class="rounded-2xl bg-white p-5 shadow-card">
+              <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h3 class="text-lg font-bold text-primary">${item.title}</h3>
+                  <p class="mt-1 text-sm text-slate-500">
+                    Ответственный: ${item.owner} • Дедлайн: ${item.deadline}
+                  </p>
+                </div>
+                <span class="rounded-full bg-sky-100 px-4 py-2 text-sm font-medium text-sky-700">
+                  ${item.status}
+                </span>
+              </div>
+
+              <div class="mt-4">
+                <div class="mb-2 flex justify-between text-sm text-slate-500">
+                  <span>Прогресс</span>
+                  <span>${item.progress}%</span>
+                </div>
+                <div class="h-3 w-full rounded-full bg-slate-100">
+                  <div class="h-3 rounded-full bg-accent" style="width:${item.progress}%"></div>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `);
+    }
+
+    function renderMonitoring() {
+      return getLayout(`
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold text-primary">Мониторинг</h2>
+          <p class="text-slate-500">Отслеживание текущих показателей успеваемости и посещаемости</p>
+        </div>
+
+        <div class="grid gap-6 lg:grid-cols-2">
+          <div class="rounded-2xl bg-white p-5 shadow-card">
+            <h3 class="mb-4 text-lg font-bold text-primary">Динамика показателей по месяцам</h3>
+            <div class="h-80">
+              <canvas id="lineChart"></canvas>
+            </div>
+          </div>
+
+          <div class="rounded-2xl bg-white p-5 shadow-card">
+            <h3 class="mb-4 text-lg font-bold text-primary">Сравнение классов</h3>
+            <div class="h-80">
+              <canvas id="barChart"></canvas>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    function renderAnalysis() {
+      const bestClass = [...classComparison].sort((a, b) => b.avgScore - a.avgScore)[0];
+      const weakAttendance = [...classComparison].sort((a, b) => a.attendance - b.attendance)[0];
+      const trend = monthlyPerformance[monthlyPerformance.length - 1].performance - monthlyPerformance[0].performance;
+
+      return getLayout(`
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold text-primary">Анализ</h2>
+          <p class="text-slate-500">Выводы и управленческие решения на основе данных</p>
+        </div>
+
+        <div class="grid gap-5 md:grid-cols-3">
+          <div class="rounded-2xl bg-white p-5 shadow-card">
+            <p class="text-sm text-slate-500">Лучший класс по успеваемости</p>
+            <h3 class="mt-2 text-2xl font-bold text-primary">${bestClass.className}</h3>
+            <p class="mt-2 text-slate-600">Средний балл: ${bestClass.avgScore}</p>
+          </div>
+
+          <div class="rounded-2xl bg-white p-5 shadow-card">
+            <p class="text-sm text-slate-500">Зона внимания</p>
+            <h3 class="mt-2 text-2xl font-bold text-primary">${weakAttendance.className}</h3>
+            <p class="mt-2 text-slate-600">Посещаемость: ${weakAttendance.attendance}%</p>
+          </div>
+
+          <div class="rounded-2xl bg-white p-5 shadow-card">
+            <p class="text-sm text-slate-500">Рост успеваемости</p>
+            <h3 class="mt-2 text-2xl font-bold text-primary">+${trend.toFixed(1)}</h3>
+            <p class="mt-2 text-slate-600">С начала периода мониторинга</p>
+          </div>
+        </div>
+
+        <div class="mt-6 rounded-2xl bg-white p-6 shadow-card">
+          <h3 class="text-lg font-bold text-primary">Управленческий вывод</h3>
+          <p class="mt-3 leading-7 text-slate-600">
+            Анализ показывает положительную динамику среднего балла по школе. При этом отдельные
+            классы требуют усиленного контроля посещаемости. Рекомендуется продолжить адресную
+            работу с классными руководителями, усилить внутришкольный контроль и закрепить лучшие практики
+            педагогов классов-лидеров.
+          </p>
+        </div>
+      `);
+    }
+
+    function renderStudentDashboard() {
+      const user = getStoredUser();
+
+      return getLayout(`
+        <div class="grid gap-6">
+          <div class="rounded-2xl bg-white p-6 shadow-card">
+            <h2 class="text-2xl font-bold text-primary">Личный дашборд</h2>
+            <div class="mt-4 grid gap-4 md:grid-cols-2">
+              <div class="rounded-2xl bg-slate-50 p-5">
+                <p class="text-sm text-slate-500">ФИО</p>
+                <h3 class="mt-2 text-xl font-bold text-primary">${user.name}</h3>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-5">
+                <p class="text-sm text-slate-500">Класс</p>
+                <h3 class="mt-2 text-xl font-bold text-primary">${user.className}</h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-2xl bg-white p-5 shadow-card">
+            <h3 class="mb-4 text-lg font-bold text-primary">Мои показатели</h3>
+            <div class="h-80">
+              <canvas id="studentChart"></canvas>
+            </div>
+          </div>
+
+          <div class="rounded-2xl bg-white p-5 shadow-card">
+            <h3 class="mb-4 text-lg font-bold text-primary">Расписание / Задачи</h3>
+            <div class="space-y-3">
+              ${studentTasks.map(item => `
+                <div class="flex flex-col justify-between gap-2 rounded-xl border border-slate-100 p-4 md:flex-row md:items-center">
+                  <div>
+                    <p class="font-semibold text-slate-800">${item.title}</p>
+                    <p class="text-sm text-slate-500">${item.date}</p>
+                  </div>
+                  <span class="w-fit rounded-full bg-sky-100 px-3 py-1 text-sm font-medium text-sky-700">
+                    ${item.type}
+                  </span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    function renderStudentRows() {
+      const body = document.getElementById('students-body');
+      if (!body) return;
+
+      const search = (document.getElementById('student-search')?.value || '').toLowerCase();
+      const selectedClass = document.getElementById('class-filter')?.value || 'Все';
+
+      const filtered = students.filter(student => {
+        const matchesSearch = student.name.toLowerCase().includes(search);
+        const matchesClass = selectedClass === 'Все' || student.className === selectedClass;
+        return matchesSearch && matchesClass;
+      });
+
+      body.innerHTML = filtered.map(student => `
+        <tr class="border-b border-slate-100">
+          <td class="px-4 py-3 font-medium text-slate-800">${student.name}</td>
+          <td class="px-4 py-3">${student.className}</td>
+          <td class="px-4 py-3">${student.average}</td>
+          <td class="px-4 py-3">
+            <span class="rounded-full bg-sky-100 px-3 py-1 text-sm font-medium text-sky-700">
+              ${student.attendance}%
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderChartsIfNeeded() {
+      if (document.getElementById('lineChart')) {
+        if (lineChartInstance) lineChartInstance.destroy();
+        lineChartInstance = new Chart(document.getElementById('lineChart'), {
+          type: 'line',
+          data: {
+            labels: monthlyPerformance.map(i => i.month),
+            datasets: [
+              {
+                label: 'Успеваемость',
+                data: monthlyPerformance.map(i => i.performance),
+                borderColor: '#38BDF8',
+                backgroundColor: 'rgba(56,189,248,0.2)',
+                tension: 0.35,
+                borderWidth: 3
+              },
+              {
+                label: 'Посещаемость',
+                data: monthlyPerformance.map(i => i.attendance),
+                borderColor: '#0F172A',
+                backgroundColor: 'rgba(15,23,42,0.2)',
+                tension: 0.35,
+                borderWidth: 3
+              }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+
+      if (document.getElementById('barChart')) {
+        if (barChartInstance) barChartInstance.destroy();
+        barChartInstance = new Chart(document.getElementById('barChart'), {
+          type: 'bar',
+          data: {
+            labels: classComparison.map(i => i.className),
+            datasets: [
+              {
+                label: 'Средний балл',
+                data: classComparison.map(i => i.avgScore),
+                backgroundColor: '#38BDF8'
+              },
+              {
+                label: 'Посещаемость %',
+                data: classComparison.map(i => i.attendance),
+                backgroundColor: '#0F172A'
+              }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+
+      if (document.getElementById('studentChart')) {
+        if (studentChartInstance) studentChartInstance.destroy();
+        studentChartInstance = new Chart(document.getElementById('studentChart'), {
+          type: 'line',
+          data: {
+            labels: studentProgress.map(i => i.month),
+            datasets: [
+              {
+                label: 'Мои оценки',
+                data: studentProgress.map(i => i.score),
+                borderColor: '#38BDF8',
+                backgroundColor: 'rgba(56,189,248,0.2)',
+                tension: 0.35,
+                borderWidth: 3
+              },
+              {
+                label: 'Посещаемость',
+                data: studentProgress.map(i => i.attendance),
+                borderColor: '#0F172A',
+                backgroundColor: 'rgba(15,23,42,0.2)',
+                tension: 0.35,
+                borderWidth: 3
+              }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+    }
+
+    function navigateTo(page) {
+      const user = getStoredUser();
+
+      if (!user) {
+        currentPage = 'login';
+        renderApp();
+        return;
+      }
+
+      if (user.role === 'user' && page.startsWith('admin')) {
+        currentPage = 'student-dashboard';
+        renderApp();
+        return;
+      }
+
+      if (user.role === 'admin' && page.startsWith('student')) {
+        currentPage = 'admin-dashboard';
+        renderApp();
+        return;
+      }
+
+      currentPage = page;
+      renderApp();
+    }
+
+    function handleLogin(event) {
+      event.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const errorBox = document.getElementById('login-error');
+      const user = loginUser(email);
+
+      if (!user) {
+        errorBox.classList.remove('hidden');
+        errorBox.textContent = 'Неверный email. Используйте admin@school.kz или student@school.kz';
+        return;
+      }
+
+      currentPage = user.role === 'admin' ? 'admin-dashboard' : 'student-dashboard';
+      renderApp();
+    }
+
+    function renderApp() {
+      const app = document.getElementById('app');
+      const user = getStoredUser();
+
+      if (!user) {
+        app.innerHTML = renderLogin();
+        return;
+      }
+
+      if (user.role === 'admin') {
+        if (!currentPage.startsWith('admin')) currentPage = 'admin-dashboard';
+      } else {
+        if (!currentPage.startsWith('student')) currentPage = 'student-dashboard';
+      }
+
+      if (currentPage === 'admin-dashboard') app.innerHTML = renderAdminDashboard();
+      if (currentPage === 'admin-students') app.innerHTML = renderStudentManagement();
+      if (currentPage === 'admin-planning') app.innerHTML = renderPlanning();
+      if (currentPage === 'admin-monitoring') app.innerHTML = renderMonitoring();
+      if (currentPage === 'admin-analysis') app.innerHTML = renderAnalysis();
+      if (currentPage === 'student-dashboard') app.innerHTML = renderStudentDashboard();
+
+      renderStudentRows();
+      renderChartsIfNeeded();
+    }
+
+    renderApp();
+  </script>
+</body>
+</html>
