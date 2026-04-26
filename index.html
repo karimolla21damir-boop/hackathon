@@ -105,33 +105,23 @@
 <body class="text-slate-800">
   <div id="app"></div>
 
-  <!-- AI Assistant Button -->
   <button id="aiToggleBtn" onclick="toggleAIChat()" class="fixed bottom-6 right-6 z-50 rounded-full bg-gradient-to-r from-sky-500 to-violet-600 p-4 text-white shadow-2xl hover:scale-105 transition">
     🤖
   </button>
 
-  <!-- AI Chat -->
   <div id="aiChatBox" class="fixed bottom-24 right-6 z-50 hidden w-[360px] max-w-[calc(100%-20px)] overflow-hidden rounded-[24px] border border-white/20 bg-white shadow-2xl">
     <div class="bg-gradient-to-r from-primary via-secondary to-accent2 px-5 py-4 text-white">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-lg font-bold">AI Помощник директора</h3>
-          <p class="text-xs text-slate-200">Рекомендации по управленческим решениям</p>
+          <h3 class="text-lg font-bold" data-i18n="ai_assistant_title">AI Помощник директора</h3>
+          <p class="text-xs text-slate-200" data-i18n="ai_assistant_subtitle">Рекомендации по управленческим решениям</p>
         </div>
         <button onclick="toggleAIChat()" class="text-white text-xl font-bold">×</button>
       </div>
     </div>
 
     <div id="aiMessages" class="max-h-[380px] overflow-y-auto bg-slate-50 px-4 py-4 space-y-3">
-      <div class="rounded-2xl bg-sky-100 px-4 py-3 text-sm text-slate-700">
-        Здравствуйте! Я AI-помощник директора. Могу подсказать рекомендации по:
-        <br>• посещаемости
-        <br>• успеваемости
-        <br>• слабым классам
-        <br>• планированию
-        <br>• мониторингу
-        <br>• анализу
-      </div>
+      <div class="rounded-2xl bg-sky-100 px-4 py-3 text-sm text-slate-700" id="aiWelcomeMessage"></div>
     </div>
 
     <div class="border-t border-slate-200 bg-white p-3">
@@ -139,11 +129,10 @@
         <input
           id="aiInput"
           type="text"
-          placeholder="Например: как улучшить посещаемость?"
           class="flex-1 rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-400"
           onkeydown="if(event.key==='Enter')sendAIMessage()"
         />
-        <button onclick="sendAIMessage()" class="rounded-2xl bg-gradient-to-r from-sky-500 to-violet-600 px-4 py-3 text-sm font-bold text-white">
+        <button onclick="sendAIMessage()" class="rounded-2xl bg-gradient-to-r from-sky-500 to-violet-600 px-4 py-3 text-sm font-bold text-white" data-i18n="send">
           Отправить
         </button>
       </div>
@@ -152,9 +141,183 @@
 
   <script>
     const STORAGE_KEY = 'school_user';
+    const LANGUAGE_KEY = 'school_lang';
     const SCHOOL_NAME = 'Сағат Әшімбаев атындағы орта мектеп';
     const DIRECTOR_NAME = 'Кокабаева Куралай Нурмуханбетовна';
     const DEMO_PASSWORD = '0000';
+
+    let currentLang = localStorage.getItem(LANGUAGE_KEY) || 'ru';
+
+    const i18n = {
+      ru: {
+        app_title: 'School Management',
+        school_name: 'Сағат Әшімбаев атындағы орта мектеп',
+        director_name: 'Кокабаева Куралай Нурмуханбетовна',
+        login: 'Вход в систему',
+        auth: 'Авторизация',
+        email: 'Email',
+        password: 'Пароль',
+        enter_email: 'Введите email',
+        enter_password: 'Введите пароль',
+        login_btn: 'Войти в систему',
+        demo_access: 'Демо-доступ:',
+        director: 'Директор',
+        student: 'Ученик',
+        dashboard: 'Дашборд',
+        student_list: 'Список учеников',
+        planning: 'Планирование',
+        monitoring: 'Мониторинг',
+        analysis: 'Анализ',
+        logout: 'Выйти',
+        planning_monitoring_analysis: 'Планирование • Мониторинг • Анализ',
+        director_panel: 'Панель директора',
+        student_panel: 'Личный кабинет ученика',
+        user: 'Пользователь',
+        director_cabinet: 'Директорский кабинет',
+        school: 'Школа',
+        role: 'Роль',
+        total_students: 'Общее кол-во учеников',
+        avg_score: 'Средний балл школы',
+        attendance_percent: 'Процент посещаемости',
+        plan_completion: 'Выполнение плана',
+        active_students: 'Все активные учащиеся школы',
+        quality_indicator: 'Интегральный показатель качества',
+        average_school_indicator: 'Средний показатель по школе',
+        management_tasks: 'Исполнение управленческих задач',
+        contingent: 'Контингент',
+        performance: 'Успеваемость',
+        attendance: 'Посещаемость',
+        plan: 'План',
+        management_focus: 'Управленческий фокус',
+        strategic_goal: 'Стратегическая цель',
+        quality_growth: 'Рост качества образования',
+        students_management: 'Управление учениками',
+        search_by_name: 'Поиск по имени...',
+        all: 'Все',
+        name: 'Имя',
+        class: 'Класс',
+        deadline: 'Дедлайн',
+        responsible: 'Ответственный',
+        progress: 'Прогресс выполнения',
+        choose_class: 'Выберите класс',
+        all_school: 'Вся школа',
+        category1: 'Категория 1',
+        category2: 'Категория 2',
+        academic_performance: 'Успеваемость',
+        attendance_label: 'Посещаемость',
+        academic_chart: 'Динамика успеваемости',
+        attendance_chart: 'Динамика посещаемости',
+        compare_perf: 'Сравнение классов по успеваемости',
+        compare_att: 'Сравнение классов по посещаемости',
+        best_class: 'Лучший класс по успеваемости',
+        attention_zone: 'Зона внимания',
+        performance_growth: 'Рост успеваемости',
+        management_conclusion: 'Управленческий вывод',
+        my_dashboard: 'Личный кабинет ученика',
+        my_metrics: 'Мои показатели',
+        schedule_tasks: 'Расписание / Задачи',
+        deadline_type: 'Дедлайн',
+        event_type: 'Мероприятие',
+        send: 'Отправить',
+        ai_assistant_title: 'AI Помощник директора',
+        ai_assistant_subtitle: 'Рекомендации по управленческим решениям',
+        ai_placeholder: 'Например: как улучшить посещаемость?',
+        ai_welcome: 'Здравствуйте! Я AI-помощник директора. Могу подсказать рекомендации по:<br>• посещаемости<br>• успеваемости<br>• слабым классам<br>• планированию<br>• мониторингу<br>• анализу',
+        invalid_login: 'Неверный email или пароль. Используйте admin@school.kz / student@school.kz и пароль 0000',
+        language: 'Язык',
+        compare_classes: 'Сравнение классов',
+        class_attendance: 'Посещаемость классов',
+        view_stats: 'Просмотр статистики',
+        admin_demo: 'директор',
+        student_demo: 'ученик'
+      },
+      kz: {
+        app_title: 'School Management',
+        school_name: 'Сағат Әшімбаев атындағы орта мектеп',
+        director_name: 'Кокабаева Куралай Нурмуханбетовна',
+        login: 'Жүйеге кіру',
+        auth: 'Авторизация',
+        email: 'Email',
+        password: 'Құпиясөз',
+        enter_email: 'Email енгізіңіз',
+        enter_password: 'Құпиясөзді енгізіңіз',
+        login_btn: 'Жүйеге кіру',
+        demo_access: 'Демо қолжетімділік:',
+        director: 'Директор',
+        student: 'Оқушы',
+        dashboard: 'Басқару тақтасы',
+        student_list: 'Оқушылар тізімі',
+        planning: 'Жоспарлау',
+        monitoring: 'Мониторинг',
+        analysis: 'Талдау',
+        logout: 'Шығу',
+        planning_monitoring_analysis: 'Жоспарлау • Мониторинг • Талдау',
+        director_panel: 'Директор панелі',
+        student_panel: 'Оқушының жеке кабинеті',
+        user: 'Пайдаланушы',
+        director_cabinet: 'Директор кабинеті',
+        school: 'Мектеп',
+        role: 'Рөл',
+        total_students: 'Оқушылар саны',
+        avg_score: 'Мектептің орташа балы',
+        attendance_percent: 'Қатысу пайызы',
+        plan_completion: 'Жоспардың орындалуы',
+        active_students: 'Барлық белсенді оқушылар',
+        quality_indicator: 'Сапаның интегралды көрсеткіші',
+        average_school_indicator: 'Мектеп бойынша орташа көрсеткіш',
+        management_tasks: 'Басқарушылық міндеттердің орындалуы',
+        contingent: 'Контингент',
+        performance: 'Үлгерім',
+        attendance: 'Қатысу',
+        plan: 'Жоспар',
+        management_focus: 'Басқарушылық фокус',
+        strategic_goal: 'Стратегиялық мақсат',
+        quality_growth: 'Білім сапасын арттыру',
+        students_management: 'Оқушыларды басқару',
+        search_by_name: 'Аты бойынша іздеу...',
+        all: 'Барлығы',
+        name: 'Аты',
+        class: 'Сынып',
+        deadline: 'Мерзімі',
+        responsible: 'Жауапты',
+        progress: 'Орындалу барысы',
+        choose_class: 'Сыныпты таңдаңыз',
+        all_school: 'Бүкіл мектеп',
+        category1: '1-санат',
+        category2: '2-санат',
+        academic_performance: 'Үлгерім',
+        attendance_label: 'Қатысу',
+        academic_chart: 'Үлгерім динамикасы',
+        attendance_chart: 'Қатысу динамикасы',
+        compare_perf: 'Сыныптарды үлгерім бойынша салыстыру',
+        compare_att: 'Сыныптарды қатысу бойынша салыстыру',
+        best_class: 'Үздік сынып',
+        attention_zone: 'Назар аудару аймағы',
+        performance_growth: 'Үлгерім өсімі',
+        management_conclusion: 'Басқарушылық қорытынды',
+        my_dashboard: 'Оқушының жеке кабинеті',
+        my_metrics: 'Менің көрсеткіштерім',
+        schedule_tasks: 'Кесте / Тапсырмалар',
+        deadline_type: 'Мерзім',
+        event_type: 'Іс-шара',
+        send: 'Жіберу',
+        ai_assistant_title: 'Директордың AI көмекшісі',
+        ai_assistant_subtitle: 'Басқарушылық шешімдерге ұсыныстар',
+        ai_placeholder: 'Мысалы: қатысуды қалай жақсартуға болады?',
+        ai_welcome: 'Сәлеметсіз бе! Мен директордың AI-көмекшісімін. Мен келесі бағыттар бойынша ұсыныс бере аламын:<br>• қатысу<br>• үлгерім<br>• әлсіз сыныптар<br>• жоспарлау<br>• мониторинг<br>• талдау',
+        invalid_login: 'Email немесе құпиясөз қате. admin@school.kz / student@school.kz және 0000 құпиясөзін пайдаланыңыз',
+        language: 'Тіл',
+        compare_classes: 'Сыныптарды салыстыру',
+        class_attendance: 'Сыныптардың қатысуы',
+        view_stats: 'Статистиканы қарау',
+        admin_demo: 'директор',
+        student_demo: 'оқушы'
+      }
+    };
+
+    function t(key) {
+      return i18n[currentLang][key] || key;
+    }
 
     const students = [
       { id: 1, name: 'Алихан Нұрланұлы', className: '10A', average: 4.7, attendance: 96 },
@@ -245,6 +408,20 @@
     let compareAttendanceChartInstance = null;
     let studentChartInstance = null;
 
+    function setLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem(LANGUAGE_KEY, lang);
+      renderApp();
+      updateStaticLanguageParts();
+    }
+
+    function updateStaticLanguageParts() {
+      const aiInput = document.getElementById('aiInput');
+      const aiWelcomeMessage = document.getElementById('aiWelcomeMessage');
+      if (aiInput) aiInput.placeholder = t('ai_placeholder');
+      if (aiWelcomeMessage) aiWelcomeMessage.innerHTML = t('ai_welcome');
+    }
+
     function getStoredUser() {
       const raw = localStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : null;
@@ -270,7 +447,7 @@
           email,
           role: 'admin',
           name: DIRECTOR_NAME,
-          position: 'Директор школы'
+          position: t('director')
         };
       }
 
@@ -312,6 +489,16 @@
       renderApp();
     }
 
+    function languageSwitcher() {
+      return `
+        <div class="flex items-center gap-2 rounded-2xl bg-white/80 px-2 py-2 shadow-sm">
+          <span class="px-2 text-xs font-bold text-slate-500">${t('language')}:</span>
+          <button onclick="setLanguage('ru')" class="rounded-xl px-3 py-2 text-xs font-bold ${currentLang === 'ru' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'}">RU</button>
+          <button onclick="setLanguage('kz')" class="rounded-xl px-3 py-2 text-xs font-bold ${currentLang === 'kz' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'}">KZ</button>
+        </div>
+      `;
+    }
+
     function statCard(title, value, subtitle, gradient, badge) {
       return `
         <div class="metric-ring shadow-glam">
@@ -333,14 +520,14 @@
     function getLayout(content) {
       const user = getStoredUser();
       const adminLinks = [
-        ['admin-dashboard', 'Дашборд'],
-        ['admin-students', 'Список учеников'],
-        ['admin-planning', 'Планирование'],
-        ['admin-monitoring', 'Мониторинг'],
-        ['admin-analysis', 'Анализ']
+        ['admin-dashboard', t('dashboard')],
+        ['admin-students', t('student_list')],
+        ['admin-planning', t('planning')],
+        ['admin-monitoring', t('monitoring')],
+        ['admin-analysis', t('analysis')]
       ];
       const userLinks = [
-        ['student-dashboard', 'Мой кабинет']
+        ['student-dashboard', t('my_dashboard')]
       ];
       const links = user.role === 'admin' ? adminLinks : userLinks;
 
@@ -352,14 +539,14 @@
                 Edu-Tech Management
               </div>
               <h2 class="text-2xl font-black leading-tight">${SCHOOL_NAME}</h2>
-              <p class="mt-3 text-sm text-slate-200">${user.role === 'admin' ? 'Панель директора' : 'Личный кабинет ученика'}</p>
+              <p class="mt-3 text-sm text-slate-200">${user.role === 'admin' ? t('director_panel') : t('student_panel')}</p>
             </div>
 
             <div class="px-6 py-5">
               <div class="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur">
-                <p class="text-xs uppercase tracking-[0.2em] text-sky-200">Пользователь</p>
+                <p class="text-xs uppercase tracking-[0.2em] text-sky-200">${t('user')}</p>
                 <h3 class="mt-2 text-lg font-bold">${user.name}</h3>
-                <p class="mt-1 text-sm text-slate-200">${user.role === 'admin' ? 'Директор школы' : 'Ученик ' + user.className}</p>
+                <p class="mt-1 text-sm text-slate-200">${user.role === 'admin' ? t('director') : t('student') + ' ' + user.className}</p>
               </div>
             </div>
 
@@ -374,19 +561,21 @@
 
           <div class="flex-1">
             <header class="glass sticky top-0 z-30 border-b border-white/50 px-4 py-4 shadow-sm md:px-8">
-              <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                  <div class="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-700">Управленческие компетенции директора</div>
-                  <h1 class="mt-2 text-2xl font-black text-primary">Планирование • Мониторинг • Анализ</h1>
+                  <div class="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-700">${t('director_panel')}</div>
+                  <h1 class="mt-2 text-2xl font-black text-primary">${t('planning_monitoring_analysis')}</h1>
                   <p class="mt-1 text-sm text-slate-500">${SCHOOL_NAME}</p>
                 </div>
-                <div class="flex items-center gap-4">
+
+                <div class="flex flex-wrap items-center gap-3">
+                  ${languageSwitcher()}
                   <div class="hidden text-right md:block">
                     <p class="text-sm font-bold text-slate-700">${user.name}</p>
-                    <p class="text-xs text-slate-500">${user.role === 'admin' ? 'Директор' : 'Ученик ' + user.className}</p>
+                    <p class="text-xs text-slate-500">${user.role === 'admin' ? t('director') : t('student') + ' ' + user.className}</p>
                   </div>
                   <button onclick="logoutUser()" class="rounded-2xl bg-gradient-to-r from-primary to-secondary px-5 py-3 text-sm font-bold text-white shadow-lg transition hover:scale-[1.02]">
-                    Выйти
+                    ${t('logout')}
                   </button>
                 </div>
               </div>
@@ -403,6 +592,8 @@
     function renderLogin() {
       return `
         <div class="flex min-h-screen items-center justify-center bg-hero-glow px-4">
+          <div class="absolute top-4 right-4 z-20">${languageSwitcher()}</div>
+
           <div class="grid w-full max-w-6xl overflow-hidden rounded-[32px] bg-white shadow-deep lg:grid-cols-2">
             <div class="relative overflow-hidden bg-hero-glow p-10 text-white">
               <div class="relative z-10">
@@ -411,22 +602,23 @@
                 </div>
                 <h1 class="mt-6 text-4xl font-black leading-tight">${SCHOOL_NAME}</h1>
                 <p class="mt-5 max-w-xl text-slate-200">
-                  Интеллектуальная цифровая среда для управления образовательным процессом:
-                  планирование, мониторинг, анализ и принятие управленческих решений.
+                  ${currentLang === 'ru'
+                    ? 'Интеллектуальная цифровая среда для управления образовательным процессом: планирование, мониторинг, анализ и принятие управленческих решений.'
+                    : 'Білім беру процесін басқаруға арналған интеллектуалды цифрлық орта: жоспарлау, мониторинг, талдау және басқарушылық шешім қабылдау.'}
                 </p>
 
                 <div class="mt-10 space-y-4">
                   <div class="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur">
-                    <p class="text-sm font-bold">Директор</p>
+                    <p class="text-sm font-bold">${t('director')}</p>
                     <p class="mt-1 text-slate-200">${DIRECTOR_NAME}</p>
                     <p class="mt-2 text-sm text-sky-200">admin@school.kz</p>
                   </div>
                   <div class="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur">
-                    <p class="text-sm font-bold">Ученик</p>
+                    <p class="text-sm font-bold">${t('student')}</p>
                     <p class="mt-1 text-slate-200">student@school.kz</p>
                   </div>
                   <div class="rounded-3xl border border-amber-300/20 bg-amber-400/10 p-5">
-                    <p class="text-sm font-bold text-amber-200">Демо пароль</p>
+                    <p class="text-sm font-bold text-amber-200">${t('password')}</p>
                     <p class="mt-1 text-2xl font-black tracking-[0.3em] text-white">${DEMO_PASSWORD}</p>
                   </div>
                 </div>
@@ -436,36 +628,36 @@
             <div class="bg-[linear-gradient(180deg,#ffffff_0%,#f6fbff_100%)] p-8 md:p-12">
               <div class="mb-8">
                 <div class="inline-flex rounded-full bg-sky-100 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-sky-700">
-                  Авторизация
+                  ${t('auth')}
                 </div>
-                <h2 class="mt-4 text-3xl font-black text-primary">Вход в систему</h2>
-                <p class="mt-2 text-sm text-slate-500">Введите email и пароль для входа в кабинет</p>
+                <h2 class="mt-4 text-3xl font-black text-primary">${t('login')}</h2>
+                <p class="mt-2 text-sm text-slate-500">${currentLang === 'ru' ? 'Введите email и пароль для входа в кабинет' : 'Кіру үшін email мен құпиясөзді енгізіңіз'}</p>
               </div>
 
               <form onsubmit="handleLogin(event)" class="space-y-5">
                 <div>
-                  <label class="mb-2 block text-sm font-semibold text-slate-700">Email</label>
-                  <input id="email" type="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100" placeholder="Введите email" />
+                  <label class="mb-2 block text-sm font-semibold text-slate-700">${t('email')}</label>
+                  <input id="email" type="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100" placeholder="${t('enter_email')}" />
                 </div>
 
                 <div>
-                  <label class="mb-2 block text-sm font-semibold text-slate-700">Пароль</label>
-                  <input id="password" type="password" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100" placeholder="Введите пароль" />
+                  <label class="mb-2 block text-sm font-semibold text-slate-700">${t('password')}</label>
+                  <input id="password" type="password" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100" placeholder="${t('enter_password')}" />
                 </div>
 
                 <div id="login-error" class="hidden rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600"></div>
 
                 <button type="submit" class="w-full rounded-2xl bg-gradient-to-r from-primary via-secondary to-accent2 px-4 py-4 font-bold text-white shadow-lg transition hover:scale-[1.01]">
-                  Войти в систему
+                  ${t('login_btn')}
                 </button>
               </form>
 
               <div class="mt-6 rounded-3xl border border-sky-100 bg-sky-50 p-5 text-sm text-slate-600">
-                <p class="font-bold text-primary">Демо-доступ:</p>
+                <p class="font-bold text-primary">${t('demo_access')}</p>
                 <div class="mt-3 space-y-2">
-                  <p><b>admin@school.kz</b> — директор</p>
-                  <p><b>student@school.kz</b> — ученик</p>
-                  <p><b>Пароль:</b> 0000</p>
+                  <p><b>admin@school.kz</b> — ${t('admin_demo')}</p>
+                  <p><b>student@school.kz</b> — ${t('student_demo')}</p>
+                  <p><b>${t('password')}:</b> 0000</p>
                 </div>
               </div>
             </div>
@@ -485,49 +677,51 @@
           <div class="grid gap-6 lg:grid-cols-2 lg:items-center">
             <div>
               <div class="inline-flex rounded-full bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-sky-200">
-                Директорский кабинет
+                ${t('director_cabinet')}
               </div>
               <h2 class="mt-4 text-4xl font-black leading-tight">${DIRECTOR_NAME}</h2>
               <p class="mt-3 text-slate-200">
-                Комплексный обзор состояния школы: образовательные результаты, посещаемость,
-                выполнение плана и аналитика по классам.
+                ${currentLang === 'ru'
+                  ? 'Комплексный обзор состояния школы: образовательные результаты, посещаемость, выполнение плана и аналитика по классам.'
+                  : 'Мектеп жағдайының кешенді көрінісі: білім нәтижелері, қатысу, жоспардың орындалуы және сыныптар бойынша талдау.'}
               </p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur">
-                <p class="text-sm text-slate-200">Школа</p>
+                <p class="text-sm text-slate-200">${t('school')}</p>
                 <p class="mt-2 text-lg font-bold">${SCHOOL_NAME}</p>
               </div>
               <div class="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur">
-                <p class="text-sm text-slate-200">Роль</p>
-                <p class="mt-2 text-lg font-bold">Директор</p>
+                <p class="text-sm text-slate-200">${t('role')}</p>
+                <p class="mt-2 text-lg font-bold">${t('director')}</p>
               </div>
             </div>
           </div>
         </section>
 
         <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          ${statCard('Общее кол-во учеников', totalStudents, 'Все активные учащиеся школы', 'bg-gradient-to-br from-sky-400 to-cyan-500', 'Контингент')}
-          ${statCard('Средний балл школы', avgScore, 'Интегральный показатель качества', 'bg-gradient-to-br from-emerald-400 to-green-500', 'Успеваемость')}
-          ${statCard('Процент посещаемости', avgAttendance + '%', 'Средний показатель по школе', 'bg-gradient-to-br from-amber-400 to-orange-500', 'Посещаемость')}
-          ${statCard('Выполнение плана', planCompletion + '%', 'Исполнение управленческих задач', 'bg-gradient-to-br from-violet-500 to-fuchsia-500', 'План')}
+          ${statCard(t('total_students'), totalStudents, t('active_students'), 'bg-gradient-to-br from-sky-400 to-cyan-500', t('contingent'))}
+          ${statCard(t('avg_score'), avgScore, t('quality_indicator'), 'bg-gradient-to-br from-emerald-400 to-green-500', t('performance'))}
+          ${statCard(t('attendance_percent'), avgAttendance + '%', t('average_school_indicator'), 'bg-gradient-to-br from-amber-400 to-orange-500', t('attendance'))}
+          ${statCard(t('plan_completion'), planCompletion + '%', t('management_tasks'), 'bg-gradient-to-br from-violet-500 to-fuchsia-500', t('plan'))}
         </div>
 
         <div class="mt-8 grid gap-6 lg:grid-cols-3">
           <div class="ornament rounded-[28px] bg-white p-6 shadow-card premium-border lg:col-span-2">
-            <h3 class="text-xl font-black text-primary">Управленческий фокус</h3>
+            <h3 class="text-xl font-black text-primary">${t('management_focus')}</h3>
             <p class="mt-4 leading-8 text-slate-600">
-              Цифровая панель позволяет директору выстраивать системную работу по трём ключевым направлениям:
-              <b>планирование</b>, <b>мониторинг</b> и <b>анализ</b>. Система демонстрирует состояние школы,
-              выявляет сильные и проблемные зоны, а также помогает принимать решения на основе данных.
+              ${currentLang === 'ru'
+                ? 'Цифровая панель позволяет директору выстраивать системную работу по трём ключевым направлениям: планирование, мониторинг и анализ. Система демонстрирует состояние школы, выявляет сильные и проблемные зоны, а также помогает принимать решения на основе данных.'
+                : 'Цифрлық панель директорға үш негізгі бағыт бойынша жүйелі жұмыс жүргізуге мүмкіндік береді: жоспарлау, мониторинг және талдау. Жүйе мектептің жағдайын көрсетеді, күшті және проблемалық аймақтарды анықтайды, сондай-ақ деректер негізінде шешім қабылдауға көмектеседі.'}
             </p>
           </div>
           <div class="rounded-[28px] bg-gradient-to-br from-sky-500 to-violet-600 p-6 text-white shadow-deep">
-            <p class="text-sm uppercase tracking-[0.2em] text-sky-100">Стратегическая цель</p>
-            <h3 class="mt-3 text-2xl font-black">Рост качества образования</h3>
+            <p class="text-sm uppercase tracking-[0.2em] text-sky-100">${t('strategic_goal')}</p>
+            <h3 class="mt-3 text-2xl font-black">${t('quality_growth')}</h3>
             <p class="mt-4 text-slate-100">
-              Повышение академических результатов, укрепление дисциплины посещаемости
-              и усиление адресной работы по классам.
+              ${currentLang === 'ru'
+                ? 'Повышение академических результатов, укрепление дисциплины посещаемости и усиление адресной работы по классам.'
+                : 'Академиялық нәтижелерді арттыру, қатысу тәртібін күшейту және сыныптар бойынша нысаналы жұмысты дамыту.'}
             </p>
           </div>
         </div>
@@ -535,26 +729,26 @@
     }
 
     function renderStudentManagement() {
-      const classes = ['Все', ...new Set(students.map(s => s.className))];
+      const classes = [t('all'), ...new Set(students.map(s => s.className))];
 
       return getLayout(`
         <div class="mb-6">
           <div class="inline-flex rounded-full bg-sky-100 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-sky-700">
             Student Management
           </div>
-          <h2 class="mt-3 text-3xl font-black text-primary">Список учеников</h2>
-          <p class="mt-2 text-slate-500">Поиск, фильтрация и просмотр академических показателей</p>
+          <h2 class="mt-3 text-3xl font-black text-primary">${t('student_list')}</h2>
+          <p class="mt-2 text-slate-500">${currentLang === 'ru' ? 'Поиск, фильтрация и просмотр академических показателей' : 'Іздеу, сүзгілеу және академиялық көрсеткіштерді қарау'}</p>
         </div>
 
         <div class="rounded-[30px] bg-white p-6 shadow-card premium-border">
           <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h3 class="text-xl font-black text-primary">Управление учениками</h3>
-              <p class="mt-1 text-sm text-slate-500">Быстрый доступ к академическим метрикам по учащимся</p>
+              <h3 class="text-xl font-black text-primary">${t('students_management')}</h3>
+              <p class="mt-1 text-sm text-slate-500">${currentLang === 'ru' ? 'Быстрый доступ к академическим метрикам по учащимся' : 'Оқушылардың академиялық метрикаларына жылдам қолжетімділік'}</p>
             </div>
 
             <div class="flex flex-col gap-3 md:flex-row">
-              <input id="student-search" type="text" placeholder="Поиск по имени..." class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100" oninput="renderStudentRows()" />
+              <input id="student-search" type="text" placeholder="${t('search_by_name')}" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100" oninput="renderStudentRows()" />
               <select id="class-filter" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100" onchange="renderStudentRows()">
                 ${classes.map(c => `<option value="${c}">${c}</option>`).join('')}
               </select>
@@ -565,10 +759,10 @@
             <table class="min-w-full overflow-hidden rounded-2xl">
               <thead class="bg-gradient-to-r from-slate-100 to-sky-50 text-left text-sm font-bold text-slate-600">
                 <tr>
-                  <th class="px-4 py-4">Имя</th>
-                  <th class="px-4 py-4">Класс</th>
-                  <th class="px-4 py-4">Средний балл</th>
-                  <th class="px-4 py-4">Посещаемость</th>
+                  <th class="px-4 py-4">${t('name')}</th>
+                  <th class="px-4 py-4">${t('class')}</th>
+                  <th class="px-4 py-4">${t('avg_score')}</th>
+                  <th class="px-4 py-4">${t('attendance')}</th>
                 </tr>
               </thead>
               <tbody id="students-body"></tbody>
@@ -584,8 +778,8 @@
           <div class="inline-flex rounded-full bg-violet-100 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-violet-700">
             Strategic Planning
           </div>
-          <h2 class="mt-3 text-3xl font-black text-primary">Планирование</h2>
-          <p class="mt-2 text-slate-500">Приоритетные задачи и выполнение управленческого плана</p>
+          <h2 class="mt-3 text-3xl font-black text-primary">${t('planning')}</h2>
+          <p class="mt-2 text-slate-500">${currentLang === 'ru' ? 'Приоритетные задачи и выполнение управленческого плана' : 'Басым міндеттер және басқару жоспарының орындалуы'}</p>
         </div>
 
         <div class="grid gap-5">
@@ -595,7 +789,7 @@
                 <div>
                   <h3 class="text-xl font-black text-primary">${item.title}</h3>
                   <p class="mt-2 text-sm text-slate-500">
-                    Ответственный: ${item.owner} • Дедлайн: ${item.deadline}
+                    ${t('responsible')}: ${item.owner} • ${t('deadline')}: ${item.deadline}
                   </p>
                 </div>
                 <span class="rounded-full bg-gradient-to-r from-sky-100 to-violet-100 px-4 py-2 text-sm font-bold text-sky-800">
@@ -605,7 +799,7 @@
 
               <div class="mt-5">
                 <div class="mb-2 flex justify-between text-sm font-medium text-slate-500">
-                  <span>Прогресс выполнения</span>
+                  <span>${t('progress')}</span>
                   <span>${item.progress}%</span>
                 </div>
                 <div class="h-4 w-full rounded-full bg-slate-100">
@@ -624,15 +818,15 @@
           <div class="inline-flex rounded-full bg-emerald-100 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">
             Monitoring Center
           </div>
-          <h2 class="mt-3 text-3xl font-black text-primary">Мониторинг</h2>
-          <p class="mt-2 text-slate-500">Раздельный анализ успеваемости и посещаемости с выбором класса и сравнением</p>
+          <h2 class="mt-3 text-3xl font-black text-primary">${t('monitoring')}</h2>
+          <p class="mt-2 text-slate-500">${currentLang === 'ru' ? 'Раздельный анализ успеваемости и посещаемости с выбором класса и сравнением' : 'Үлгерім мен қатысуды бөлек талдау, сыныпты таңдау және салыстыру мүмкіндігімен'}</p>
         </div>
 
         <div class="mb-6 grid gap-4 lg:grid-cols-3">
           <div class="rounded-[26px] bg-white p-5 shadow-card premium-border">
-            <label class="mb-2 block text-sm font-bold text-slate-700">Выберите класс</label>
+            <label class="mb-2 block text-sm font-bold text-slate-700">${t('choose_class')}</label>
             <select id="monitor-class-select" onchange="updateMonitoringCharts()" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100">
-              <option value="school">Вся школа</option>
+              <option value="school">${t('all_school')}</option>
               <option value="8C">8C</option>
               <option value="9B">9B</option>
               <option value="10A">10A</option>
@@ -641,22 +835,22 @@
           </div>
 
           <div class="rounded-[26px] bg-gradient-to-r from-sky-500 to-cyan-500 p-5 text-white shadow-glam">
-            <p class="text-sm font-semibold text-sky-100">Категория 1</p>
-            <h3 class="mt-2 text-2xl font-black">Успеваемость</h3>
-            <p class="mt-2 text-sm text-sky-50">Отдельный график динамики качества знаний</p>
+            <p class="text-sm font-semibold text-sky-100">${t('category1')}</p>
+            <h3 class="mt-2 text-2xl font-black">${t('academic_performance')}</h3>
+            <p class="mt-2 text-sm text-sky-50">${currentLang === 'ru' ? 'Отдельный график динамики качества знаний' : 'Білім сапасы динамикасының жеке графигі'}</p>
           </div>
 
           <div class="rounded-[26px] bg-gradient-to-r from-amber-400 to-orange-500 p-5 text-white shadow-glam">
-            <p class="text-sm font-semibold text-amber-50">Категория 2</p>
-            <h3 class="mt-2 text-2xl font-black">Посещаемость</h3>
-            <p class="mt-2 text-sm text-amber-50">Отдельный график дисциплины посещения</p>
+            <p class="text-sm font-semibold text-amber-50">${t('category2')}</p>
+            <h3 class="mt-2 text-2xl font-black">${t('attendance_label')}</h3>
+            <p class="mt-2 text-sm text-amber-50">${currentLang === 'ru' ? 'Отдельный график дисциплины посещения' : 'Қатысу тәртібінің жеке графигі'}</p>
           </div>
         </div>
 
         <div class="grid gap-6 xl:grid-cols-2">
           <div class="rounded-[28px] bg-white p-6 shadow-card premium-border">
             <div class="mb-4 flex items-center justify-between">
-              <h3 class="text-xl font-black text-primary">Динамика успеваемости</h3>
+              <h3 class="text-xl font-black text-primary">${t('academic_chart')}</h3>
               <span class="rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-700">Academic Performance</span>
             </div>
             <div class="h-80">
@@ -666,7 +860,7 @@
 
           <div class="rounded-[28px] bg-white p-6 shadow-card premium-border">
             <div class="mb-4 flex items-center justify-between">
-              <h3 class="text-xl font-black text-primary">Динамика посещаемости</h3>
+              <h3 class="text-xl font-black text-primary">${t('attendance_chart')}</h3>
               <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">Attendance Monitoring</span>
             </div>
             <div class="h-80">
@@ -678,8 +872,8 @@
         <div class="mt-6 grid gap-6 xl:grid-cols-2">
           <div class="rounded-[28px] bg-white p-6 shadow-card premium-border">
             <div class="mb-4 flex items-center justify-between">
-              <h3 class="text-xl font-black text-primary">Сравнение классов по успеваемости</h3>
-              <span class="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-700">Compare Classes</span>
+              <h3 class="text-xl font-black text-primary">${t('compare_perf')}</h3>
+              <span class="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-700">${t('compare_classes')}</span>
             </div>
             <div class="h-80">
               <canvas id="comparePerformanceChart"></canvas>
@@ -688,8 +882,8 @@
 
           <div class="rounded-[28px] bg-white p-6 shadow-card premium-border">
             <div class="mb-4 flex items-center justify-between">
-              <h3 class="text-xl font-black text-primary">Сравнение классов по посещаемости</h3>
-              <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">Class Attendance</span>
+              <h3 class="text-xl font-black text-primary">${t('compare_att')}</h3>
+              <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">${t('class_attendance')}</span>
             </div>
             <div class="h-80">
               <canvas id="compareAttendanceChart"></canvas>
@@ -709,38 +903,36 @@
           <div class="inline-flex rounded-full bg-amber-100 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-amber-700">
             Data Analysis
           </div>
-          <h2 class="mt-3 text-3xl font-black text-primary">Анализ</h2>
-          <p class="mt-2 text-slate-500">Выводы и управленческие решения на основе статистики</p>
+          <h2 class="mt-3 text-3xl font-black text-primary">${t('analysis')}</h2>
+          <p class="mt-2 text-slate-500">${currentLang === 'ru' ? 'Выводы и управленческие решения на основе статистики' : 'Статистика негізіндегі қорытындылар мен басқарушылық шешімдер'}</p>
         </div>
 
         <div class="grid gap-5 md:grid-cols-3">
           <div class="rounded-[28px] bg-gradient-to-br from-sky-500 to-cyan-500 p-6 text-white shadow-glam">
-            <p class="text-sm text-sky-100">Лучший класс по успеваемости</p>
+            <p class="text-sm text-sky-100">${t('best_class')}</p>
             <h3 class="mt-3 text-3xl font-black">${bestClass.className}</h3>
-            <p class="mt-2 text-sky-50">Средний балл: ${bestClass.avgScore}</p>
+            <p class="mt-2 text-sky-50">${currentLang === 'ru' ? 'Средний балл:' : 'Орташа балл:'} ${bestClass.avgScore}</p>
           </div>
 
-          <div class="rounded-[28px] bg-gradient-to-br from-rose-500 to-orange-500 p-6 text-white shadow-glam">
-            <p class="text-sm text-rose-100">Зона внимания</p>
-            <h3 class="mt-3 text-3xl font-black">${weakAttendance.className}</h3>
-            <p class="mt-2 text-rose-50">Посещаемость: ${weakAttendance.attendance}%</p>
+          <div class="rounded-[28px] bg-gradient-to-br from-yellow-300 to-amber-500 p-6 text-slate-900 shadow-glam">
+            <p class="text-sm font-bold text-slate-800">${t('attention_zone')}</p>
+            <h3 class="mt-3 text-3xl font-black text-slate-900">${weakAttendance.className}</h3>
+            <p class="mt-2 font-semibold text-slate-800">${currentLang === 'ru' ? 'Посещаемость:' : 'Қатысу:'} ${weakAttendance.attendance}%</p>
           </div>
 
           <div class="rounded-[28px] bg-gradient-to-br from-violet-500 to-indigo-600 p-6 text-white shadow-glam">
-            <p class="text-sm text-violet-100">Рост успеваемости</p>
+            <p class="text-sm text-violet-100">${t('performance_growth')}</p>
             <h3 class="mt-3 text-3xl font-black">+${trend.toFixed(1)}</h3>
-            <p class="mt-2 text-violet-50">С начала периода мониторинга</p>
+            <p class="mt-2 text-violet-50">${currentLang === 'ru' ? 'С начала периода мониторинга' : 'Мониторинг кезеңінің басынан бері'}</p>
           </div>
         </div>
 
         <div class="mt-6 rounded-[30px] bg-white p-6 shadow-card premium-border">
-          <h3 class="text-xl font-black text-primary">Управленческий вывод</h3>
+          <h3 class="text-xl font-black text-primary">${t('management_conclusion')}</h3>
           <p class="mt-4 leading-8 text-slate-600">
-            Аналитика подтверждает положительную динамику качества знаний по школе.
-            Лидером по академической результативности является <b>${bestClass.className}</b>,
-            а зоной управленческого внимания по посещаемости выступает <b>${weakAttendance.className}</b>.
-            Рекомендуется усилить адресный контроль, внедрить наставничество между сильными и слабыми классами,
-            а также регулярно использовать раздельный мониторинг успеваемости и посещаемости.
+            ${currentLang === 'ru'
+              ? `Аналитика подтверждает положительную динамику качества знаний по школе. Лидером по академической результативности является <b>${bestClass.className}</b>, а зоной управленческого внимания по посещаемости выступает <b>${weakAttendance.className}</b>. Рекомендуется усилить адресный контроль, внедрить наставничество между сильными и слабыми классами, а также регулярно использовать раздельный мониторинг успеваемости и посещаемости.`
+              : `Талдау мектеп бойынша білім сапасының оң динамикасын растайды. Академиялық нәтижелілік бойынша көшбасшы сынып — <b>${bestClass.className}</b>, ал қатысу бойынша басқарушылық назарды қажет ететін аймақ — <b>${weakAttendance.className}</b>. Нысаналы бақылауды күшейту, күшті және әлсіз сыныптар арасында тәлімгерлік енгізу, сондай-ақ үлгерім мен қатысуды бөлек мониторингтеуді тұрақты қолдану ұсынылады.`}
           </p>
         </div>
       `);
@@ -757,15 +949,15 @@
                 Student Dashboard
               </div>
               <h2 class="mt-4 text-4xl font-black">${user.name}</h2>
-              <p class="mt-2 text-slate-200">Личный кабинет ученика ${user.className}</p>
+              <p class="mt-2 text-slate-200">${t('student')} ${user.className}</p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="rounded-3xl border border-white/10 bg-white/10 p-5">
-                <p class="text-sm text-slate-200">Школа</p>
+                <p class="text-sm text-slate-200">${t('school')}</p>
                 <p class="mt-2 font-bold">${SCHOOL_NAME}</p>
               </div>
               <div class="rounded-3xl border border-white/10 bg-white/10 p-5">
-                <p class="text-sm text-slate-200">Класс</p>
+                <p class="text-sm text-slate-200">${t('class')}</p>
                 <p class="mt-2 font-bold">${user.className}</p>
               </div>
             </div>
@@ -774,14 +966,14 @@
 
         <div class="grid gap-6">
           <div class="rounded-[28px] bg-white p-6 shadow-card premium-border">
-            <h3 class="text-xl font-black text-primary">Мои показатели</h3>
+            <h3 class="text-xl font-black text-primary">${t('my_metrics')}</h3>
             <div class="mt-4 h-80">
               <canvas id="studentChart"></canvas>
             </div>
           </div>
 
           <div class="rounded-[28px] bg-white p-6 shadow-card premium-border">
-            <h3 class="mb-4 text-xl font-black text-primary">Расписание / Задачи</h3>
+            <h3 class="mb-4 text-xl font-black text-primary">${t('schedule_tasks')}</h3>
             <div class="space-y-4">
               ${studentTasks.map(item => `
                 <div class="flex flex-col justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 md:flex-row md:items-center">
@@ -790,7 +982,7 @@
                     <p class="mt-1 text-sm text-slate-500">${item.date}</p>
                   </div>
                   <span class="w-fit rounded-full bg-gradient-to-r from-sky-100 to-violet-100 px-4 py-2 text-sm font-bold text-sky-700">
-                    ${item.type}
+                    ${item.type === 'Дедлайн' ? t('deadline_type') : t('event_type')}
                   </span>
                 </div>
               `).join('')}
@@ -805,11 +997,11 @@
       if (!body) return;
 
       const search = (document.getElementById('student-search')?.value || '').toLowerCase();
-      const selectedClass = document.getElementById('class-filter')?.value || 'Все';
+      const selectedClass = document.getElementById('class-filter')?.value || t('all');
 
       const filtered = students.filter(student => {
         const matchesSearch = student.name.toLowerCase().includes(search);
-        const matchesClass = selectedClass === 'Все' || student.className === selectedClass;
+        const matchesClass = selectedClass === t('all') || student.className === selectedClass;
         return matchesSearch && matchesClass;
       });
 
@@ -838,7 +1030,9 @@
     function updateMonitoringCharts() {
       const selected = document.getElementById('monitor-class-select')?.value || 'school';
       const data = getSelectedMonitoringData();
-      const titleSuffix = selected === 'school' ? 'Вся школа' : 'Класс ' + selected;
+      const titleSuffix = selected === 'school'
+        ? (currentLang === 'ru' ? 'Вся школа' : 'Бүкіл мектеп')
+        : (currentLang === 'ru' ? 'Класс ' + selected : 'Сынып ' + selected);
 
       if (performanceChartInstance) performanceChartInstance.destroy();
       if (attendanceChartInstance) attendanceChartInstance.destroy();
@@ -856,7 +1050,7 @@
           data: {
             labels: data.map(i => i.month),
             datasets: [{
-              label: 'Успеваемость — ' + titleSuffix,
+              label: `${t('academic_performance')} — ${titleSuffix}`,
               data: data.map(i => i.performance),
               borderColor: '#38BDF8',
               backgroundColor: 'rgba(56,189,248,0.18)',
@@ -883,7 +1077,7 @@
           data: {
             labels: data.map(i => i.month),
             datasets: [{
-              label: 'Посещаемость — ' + titleSuffix,
+              label: `${t('attendance_label')} — ${titleSuffix}`,
               data: data.map(i => i.attendance),
               borderColor: '#F59E0B',
               backgroundColor: 'rgba(245,158,11,0.20)',
@@ -910,7 +1104,7 @@
           data: {
             labels: classComparison.map(i => i.className),
             datasets: [{
-              label: 'Средний балл классов',
+              label: currentLang === 'ru' ? 'Средний балл классов' : 'Сыныптардың орташа балы',
               data: classComparison.map(i => i.avgScore),
               backgroundColor: ['#7C3AED', '#38BDF8', '#22C55E', '#F59E0B'],
               borderRadius: 14
@@ -929,7 +1123,7 @@
           data: {
             labels: classComparison.map(i => i.className),
             datasets: [{
-              label: 'Посещаемость классов %',
+              label: currentLang === 'ru' ? 'Посещаемость классов %' : 'Сыныптардың қатысуы %',
               data: classComparison.map(i => i.attendance),
               backgroundColor: ['#0EA5E9', '#F59E0B', '#10B981', '#8B5CF6'],
               borderRadius: 14
@@ -952,7 +1146,7 @@
             labels: studentProgress.map(i => i.month),
             datasets: [
               {
-                label: 'Мои оценки',
+                label: currentLang === 'ru' ? 'Мои оценки' : 'Менің бағаларым',
                 data: studentProgress.map(i => i.score),
                 borderColor: '#38BDF8',
                 backgroundColor: 'rgba(56,189,248,0.18)',
@@ -961,7 +1155,7 @@
                 borderWidth: 4
               },
               {
-                label: 'Посещаемость',
+                label: t('attendance_label'),
                 data: studentProgress.map(i => i.attendance),
                 borderColor: '#7C3AED',
                 backgroundColor: 'rgba(124,58,237,0.12)',
@@ -981,12 +1175,15 @@
       if (document.getElementById('performanceChart')) {
         updateMonitoringCharts();
       }
+
+      updateStaticLanguageParts();
     }
 
     function toggleAIChat() {
       const box = document.getElementById('aiChatBox');
       if (!box) return;
       box.classList.toggle('hidden');
+      updateStaticLanguageParts();
     }
 
     function addAIMessage(text, type = 'bot') {
@@ -1007,92 +1204,45 @@
     function getAIRecommendation(message) {
       const msg = message.toLowerCase();
 
-      if (msg.includes('посещаем')) {
-        return `
-          <b>Рекомендации по посещаемости:</b><br>
-          • Определить классы с наименьшей посещаемостью<br>
-          • Провести индивидуальную работу с классными руководителями<br>
-          • Усилить связь с родителями<br>
-          • Ввести еженедельный мониторинг опозданий и пропусков<br>
-          • Применить систему раннего реагирования по группам риска
-        `;
+      if (msg.includes('посещаем') || msg.includes('қатысу')) {
+        return currentLang === 'ru'
+          ? `<b>Рекомендации по посещаемости:</b><br>• Определить классы с наименьшей посещаемостью<br>• Провести индивидуальную работу с классными руководителями<br>• Усилить связь с родителями<br>• Ввести еженедельный мониторинг опозданий и пропусков<br>• Применить систему раннего реагирования по группам риска`
+          : `<b>Қатысу бойынша ұсыныстар:</b><br>• Қатысуы төмен сыныптарды анықтау<br>• Сынып жетекшілерімен жеке жұмыс жүргізу<br>• Ата-аналармен байланысты күшейту<br>• Кешігулер мен босатуларға апта сайын мониторинг енгізу<br>• Тәуекел топтарына ерте әрекет ету жүйесін қолдану`;
       }
 
-      if (msg.includes('успеваем')) {
-        return `
-          <b>Рекомендации по успеваемости:</b><br>
-          • Провести анализ по предметам и классам<br>
-          • Выделить учащихся с устойчивым снижением результатов<br>
-          • Организовать дополнительные консультации<br>
-          • Использовать наставничество сильных учеников<br>
-          • Контролировать динамику не реже 1 раза в месяц
-        `;
+      if (msg.includes('успеваем') || msg.includes('үлгер')) {
+        return currentLang === 'ru'
+          ? `<b>Рекомендации по успеваемости:</b><br>• Провести анализ по предметам и классам<br>• Выделить учащихся с устойчивым снижением результатов<br>• Организовать дополнительные консультации<br>• Использовать наставничество сильных учеников<br>• Контролировать динамику не реже 1 раза в месяц`
+          : `<b>Үлгерім бойынша ұсыныстар:</b><br>• Пәндер мен сыныптар бойынша талдау жүргізу<br>• Нәтижесі тұрақты төмендеген оқушыларды анықтау<br>• Қосымша консультациялар ұйымдастыру<br>• Үздік оқушылардың тәлімгерлігін пайдалану<br>• Динамиканы айына кемінде 1 рет бақылау`;
       }
 
-      if (msg.includes('слаб') || msg.includes('проблем')) {
-        return `
-          <b>Работа со слабыми классами:</b><br>
-          • Назначить адресный контроль администрации<br>
-          • Провести малый педагогический консилиум<br>
-          • Разработать отдельный план сопровождения класса<br>
-          • Усилить внутришкольный мониторинг<br>
-          • Еженедельно отслеживать прогресс
-        `;
+      if (msg.includes('слаб') || msg.includes('проблем') || msg.includes('әлсіз')) {
+        return currentLang === 'ru'
+          ? `<b>Работа со слабыми классами:</b><br>• Назначить адресный контроль администрации<br>• Провести малый педагогический консилиум<br>• Разработать отдельный план сопровождения класса<br>• Усилить внутришкольный мониторинг<br>• Еженедельно отслеживать прогресс`
+          : `<b>Әлсіз сыныптармен жұмыс:</b><br>• Әкімшілік тарапынан нысаналы бақылау енгізу<br>• Шағын педагогикалық консилиум өткізу<br>• Сыныпты сүйемелдеудің жеке жоспарын әзірлеу<br>• Мектепішілік мониторингті күшейту<br>• Апта сайын прогресті бақылау`;
       }
 
-      if (msg.includes('план')) {
-        return `
-          <b>Рекомендации по планированию:</b><br>
-          • Формулировать измеримые цели<br>
-          • Назначать ответственных по каждому индикатору<br>
-          • Устанавливать конкретные дедлайны<br>
-          • Делить стратегические цели на этапы<br>
-          • Ежемесячно пересматривать статус выполнения
-        `;
+      if (msg.includes('план') || msg.includes('жоспар')) {
+        return currentLang === 'ru'
+          ? `<b>Рекомендации по планированию:</b><br>• Формулировать измеримые цели<br>• Назначать ответственных по каждому индикатору<br>• Устанавливать конкретные дедлайны<br>• Делить стратегические цели на этапы<br>• Ежемесячно пересматривать статус выполнения`
+          : `<b>Жоспарлау бойынша ұсыныстар:</b><br>• Өлшенетін мақсаттар қою<br>• Әр индикатор бойынша жауаптыларды белгілеу<br>• Нақты мерзімдер орнату<br>• Стратегиялық мақсаттарды кезеңдерге бөлу<br>• Ай сайын орындалу мәртебесін қайта қарау`;
       }
 
-      if (msg.includes('монитор')) {
-        return `
-          <b>Рекомендации по мониторингу:</b><br>
-          • Разделить академические и дисциплинарные показатели<br>
-          • Отслеживать данные отдельно по каждому классу<br>
-          • Сравнивать классы между собой<br>
-          • Выделять зоны риска цветовой индикацией<br>
-          • Использовать графики для быстрых решений
-        `;
+      if (msg.includes('монитор') || msg.includes('бақыла')) {
+        return currentLang === 'ru'
+          ? `<b>Рекомендации по мониторингу:</b><br>• Разделить академические и дисциплинарные показатели<br>• Отслеживать данные отдельно по каждому классу<br>• Сравнивать классы между собой<br>• Выделять зоны риска цветовой индикацией<br>• Использовать графики для быстрых решений`
+          : `<b>Мониторинг бойынша ұсыныстар:</b><br>• Академиялық және тәртіптік көрсеткіштерді бөлу<br>• Әр сынып бойынша деректерді жеке қадағалау<br>• Сыныптарды өзара салыстыру<br>• Тәуекел аймақтарын түспен белгілеу<br>• Жылдам шешімдер үшін графиктерді қолдану`;
       }
 
-      if (msg.includes('анализ')) {
-        return `
-          <b>Рекомендации по анализу:</b><br>
-          • Анализировать не только средний результат, но и динамику<br>
-          • Искать причины отклонений по классам<br>
-          • Сравнивать лидеров и отстающие классы<br>
-          • Делать краткие управленческие выводы по итогам месяца<br>
-          • Переводить выводы в конкретные действия
-        `;
+      if (msg.includes('анализ') || msg.includes('талдау')) {
+        return currentLang === 'ru'
+          ? `<b>Рекомендации по анализу:</b><br>• Анализировать не только средний результат, но и динамику<br>• Искать причины отклонений по классам<br>• Сравнивать лидеров и отстающие классы<br>• Делать краткие управленческие выводы по итогам месяца<br>• Переводить выводы в конкретные действия`
+          : `<b>Талдау бойынша ұсыныстар:</b><br>• Тек орташа нәтижені емес, динамиканы да талдау<br>• Сыныптар бойынша ауытқулардың себептерін іздеу<br>• Көшбасшы және артта қалған сыныптарды салыстыру<br>• Ай қорытындысы бойынша қысқа басқарушылық тұжырым жасау<br>• Қорытындыны нақты әрекетке айналдыру`;
       }
 
-      if (msg.includes('директор') || msg.includes('решени')) {
-        return `
-          <b>Рекомендации директору:</b><br>
-          • Использовать данные как основу управленческих решений<br>
-          • Усилить контроль классов риска<br>
-          • Поддерживать эффективных педагогов и классных руководителей<br>
-          • Вести цикл: планирование → мониторинг → анализ → коррекция<br>
-          • Регулярно представлять результаты на педсовете
-        `;
-      }
-
-      return `
-        <b>AI-рекомендация:</b><br>
-        Попробуйте задать вопрос точнее. Например:<br>
-        • как улучшить посещаемость?<br>
-        • как повысить успеваемость?<br>
-        • что делать со слабыми классами?<br>
-        • рекомендации по мониторингу<br>
-        • рекомендации по анализу
-      `;
+      return currentLang === 'ru'
+        ? `<b>AI-рекомендация:</b><br>Попробуйте задать вопрос точнее. Например:<br>• как улучшить посещаемость?<br>• как повысить успеваемость?<br>• что делать со слабыми классами?<br>• рекомендации по мониторингу<br>• рекомендации по анализу`
+        : `<b>AI-ұсыныс:</b><br>Сұрағыңызды нақтырақ қойып көріңіз. Мысалы:<br>• қатысуды қалай жақсартуға болады?<br>• үлгерімді қалай арттыруға болады?<br>• әлсіз сыныптармен не істеу керек?<br>• мониторинг бойынша ұсыныстар<br>• талдау бойынша ұсыныстар`;
     }
 
     function sendAIMessage() {
@@ -1121,7 +1271,7 @@
 
       if (!user) {
         errorBox.classList.remove('hidden');
-        errorBox.textContent = 'Неверный email или пароль. Используйте admin@school.kz / student@school.kz и пароль 0000';
+        errorBox.textContent = t('invalid_login');
         return;
       }
 
@@ -1135,6 +1285,7 @@
 
       if (!user) {
         app.innerHTML = renderLogin();
+        updateStaticLanguageParts();
         return;
       }
 
@@ -1156,6 +1307,7 @@
     }
 
     renderApp();
+    updateStaticLanguageParts();
   </script>
 </body>
 </html>
